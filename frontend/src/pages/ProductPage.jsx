@@ -1,11 +1,15 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
-import { getTripById } from '../data/trips'
+import { useState, useEffect } from 'react'
+import { tripsAPI, enquiriesAPI } from '../config/api'
+import { Loader2, Calendar, Users, Mail, Phone, MessageSquare, Send, CheckCircle } from 'lucide-react'
+import { useToast } from '../contexts/ToastContext'
 
 function ProductPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const trip = getTripById(id)
+  const toast = useToast()
+  const [trip, setTrip] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [expandedDay, setExpandedDay] = useState(null)
   const [activeTab, setActiveTab] = useState('Itinerary')
   const [numTravelers, setNumTravelers] = useState(1)
@@ -27,8 +31,8 @@ function ProductPage() {
     )
   }
 
-  // Generate content based on trip location
-  const getTripContent = (location) => {
+  // Get content from trip data (now stored in database)
+  const getTripContent = (tripData) => {
     const contentMap = {
       'Meghalaya': {
         subtitle: '6 Days Adventure Trip',
@@ -361,10 +365,93 @@ function ProductPage() {
       ]
     }
 
-    return contentMap[location] || defaultContent
+    // If trip has all content fields, use them directly
+    if (tripData.intro && tripData.whyVisit && tripData.itinerary) {
+      return {
+        subtitle: tripData.subtitle || `${tripData.duration} Adventure Trip`,
+        intro: tripData.intro,
+        video: tripData.videoUrl || tripData.video || '/video/Slider.mp4',
+        gallery: tripData.gallery && tripData.gallery.length > 0 ? tripData.gallery : [
+          tripData.imageUrl || tripData.image,
+          'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?auto=format&fit=crop&w=900&q=60',
+          'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=900&q=60',
+          'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=900&q=60'
+        ],
+        reviews: tripData.reviews && tripData.reviews.length > 0 ? tripData.reviews : [
+          {
+            rating: 5,
+            text: 'An amazing experience! The trip was well-organized and the destination exceeded all expectations. Highly recommended!',
+            author: 'Recent Traveller'
+          }
+        ],
+        whyVisit: tripData.whyVisit || [],
+        itinerary: tripData.itinerary || [],
+        included: tripData.included || [],
+        notIncluded: tripData.notIncluded || [],
+        notes: tripData.notes || [],
+        faq: tripData.faq || [],
+      }
+    }
+
+    // Fallback to location-based content for backward compatibility
+    return contentMap[tripData.location] || defaultContent
   }
 
-  const content = getTripContent(trip.location)
+  const content = getTripContent(trip)
+
+  const validateEnquiryForm = () => {
+    const newErrors = {};
+    
+    if (!enquiryData.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+    
+    if (!enquiryData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(enquiryData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleEnquirySubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!validateEnquiryForm()) {
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      
+      const monthName = enquiryData.selectedMonth 
+        ? new Date(enquiryData.selectedMonth + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+        : 'Not specified';
+
+      await enquiriesAPI.createEnquiry({
+        tripId: trip.id,
+        tripTitle: trip.title,
+        tripLocation: trip.location,
+        tripPrice: trip.price,
+        selectedMonth: monthName,
+        numberOfTravelers: enquiryData.numberOfTravelers,
+        name: enquiryData.name.trim(),
+        email: enquiryData.email.trim(),
+        phone: enquiryData.phone.trim() || null,
+        message: enquiryData.message.trim() || null,
+      });
+
+      setSubmitted(true);
+      toast.success('Enquiry submitted successfully! We\'ll get back to you soon.');
+    } catch (error) {
+      console.error('Error submitting enquiry:', error);
+      toast.error(error.message || 'Failed to submit enquiry. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-gray-900 font-sans">
@@ -380,7 +467,7 @@ function ProductPage() {
           <source src={content.video} type="video/mp4" />
           {/* Fallback image if video doesn't load */}
           <img 
-            src={trip.image} 
+            src={trip.imageUrl || trip.image} 
             alt={trip.title}
             className="w-full h-full object-cover"
           />
@@ -845,19 +932,11 @@ function ProductPage() {
                   <p className="text-4xl md:text-5xl font-bold">{trip.price}</p>
                   <p className="text-sm opacity-75 mt-1 line-through">{trip.oldPrice}</p>
                 </div>
-                <button className="bg-white text-[#017233] px-10 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105 transform">
-                  Book Now
-                </button>
-                <button 
-                  onClick={() => navigate('/')}
-                  className="border-2 border-white text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-white/20 transition-all duration-300 backdrop-blur-sm"
-                >
-                  Back to Trips
-                </button>
               </div>
-            </div>
-          </section>
-        </div>
+            )}
+          </div>
+        </section>
+      </div>
     </div>
   )
 }

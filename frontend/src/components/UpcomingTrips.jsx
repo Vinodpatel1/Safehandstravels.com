@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
-import { trips } from '../data/trips'
+import { useMemo, useState, useEffect } from 'react'
+import { tripsAPI } from '../config/api'
 import TripCard from './card/TripCard'
+import { Loader2 } from 'lucide-react'
 
 const filters = [
   'All',
@@ -16,11 +17,30 @@ const filters = [
 
 function UpcomingTrips() {
   const [activeFilter, setActiveFilter] = useState('All')
+  const [trips, setTrips] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchTrips()
+  }, [])
+
+  const fetchTrips = async () => {
+    try {
+      setLoading(true)
+      const response = await tripsAPI.getAllTrips()
+      setTrips(response.trips || [])
+    } catch (error) {
+      console.error('Error fetching trips:', error)
+      setTrips([])
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const visibleTrips = useMemo(() => {
     if (activeFilter === 'All') return trips
     return trips.filter((trip) => trip.location === activeFilter)
-  }, [activeFilter])
+  }, [activeFilter, trips])
 
   return (
     <section className="w-full bg-gradient-to-b from-gray-50 to-white py-12 md:py-16">
