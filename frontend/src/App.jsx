@@ -11,6 +11,11 @@ import SpiritualTrips from './pages/SpiritualTrips'
 import HimalayanEscapes from './pages/HimalayanEscapes'
 import BeachIslandBreaks from './pages/BeachIslandBreaks'
 import WellnessRetreats from './pages/WellnessRetreats'
+import AdminTrips from './pages/AdminTrips'
+import AdminCertificates from './pages/AdminCertificates'
+import AdminDestinations from './pages/AdminDestinations'
+import AdminReviews from './pages/AdminReviews'
+import AdminWrittenReviews from './pages/AdminWrittenReviews'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import './App.css'
@@ -34,6 +39,12 @@ function App() {
               <Route path="/himalayan-escapes" element={<HimalayanEscapes />} />
               <Route path="/beach-island-breaks" element={<BeachIslandBreaks />} />
               <Route path="/wellness-retreats" element={<WellnessRetreats />} />
+              {/* Admin Routes */}
+              <Route path="/admin/trips" element={<AdminTrips />} />
+              <Route path="/admin/certificates" element={<AdminCertificates />} />
+              <Route path="/admin/destinations" element={<AdminDestinations />} />
+              <Route path="/admin/reviews" element={<AdminReviews />} />
+              <Route path="/admin/written-reviews" element={<AdminWrittenReviews />} />
             </Routes>
           </main>
           <Footer />

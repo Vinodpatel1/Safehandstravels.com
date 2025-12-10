@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit2, Trash2, Eye, Loader2, X, Save, Upload, Image as ImageIcon, Video, Search } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, Loader2, X, Save, Upload, Image as ImageIcon, Search } from 'lucide-react';
 import { tripsAPI, uploadAPI } from '../config/api';
 import { useToast } from '../contexts/ToastContext';
 import { authAPI } from '../config/api';
@@ -14,7 +14,7 @@ const AdminTrips = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingTrip, setEditingTrip] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [uploading, setUploading] = useState({ image: false, video: false, gallery: false });
+  const [uploading, setUploading] = useState({ image: false, gallery: false });
 
   const [formData, setFormData] = useState({
     title: '',
@@ -107,8 +107,6 @@ const AdminTrips = () => {
       let result;
       if (type === 'image' || type === 'gallery') {
         result = await uploadAPI.uploadImage(file);
-      } else if (type === 'video') {
-        result = await uploadAPI.uploadVideo(file);
       }
 
       if (type === 'image') {
@@ -118,13 +116,6 @@ const AdminTrips = () => {
           imagePublicId: result.public_id
         }));
         toast.success('Image uploaded successfully!');
-      } else if (type === 'video') {
-        setFormData(prev => ({
-          ...prev,
-          videoUrl: result.url,
-          videoPublicId: result.public_id
-        }));
-        toast.success('Video uploaded successfully!');
       } else if (type === 'gallery') {
         setFormData(prev => ({
           ...prev,
@@ -139,6 +130,21 @@ const AdminTrips = () => {
     } finally {
       setUploading(prev => ({ ...prev, [type]: false }));
     }
+  };
+
+  // Extract YouTube video ID from URL
+  const extractYouTubeId = (url) => {
+    if (!url) return '';
+    
+    // If it's already just an ID, return it
+    if (!url.includes('youtube.com') && !url.includes('youtu.be') && url.length === 11) {
+      return url;
+    }
+    
+    // Extract ID from YouTube URL
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : '';
   };
 
   const handleSubmit = async (e) => {
@@ -193,7 +199,6 @@ const AdminTrips = () => {
       gallery: trip.gallery || [],
       galleryPublicIds: trip.galleryPublicIds || [],
       imagePublicId: trip.imagePublicId,
-      videoPublicId: trip.videoPublicId,
       status: trip.status || 'active',
     });
     setShowForm(true);
@@ -407,28 +412,34 @@ const AdminTrips = () => {
                   </div>
                 </div>
 
-                {/* Video Upload */}
+                {/* YouTube Video URL */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Video</label>
-                  <div className="flex items-center gap-4">
-                    <input
-                      type="file"
-                      accept="video/*"
-                      onChange={(e) => e.target.files[0] && handleFileUpload(e.target.files[0], 'video')}
-                      className="hidden"
-                      id="video-upload"
-                    />
-                    <label
-                      htmlFor="video-upload"
-                      className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg font-semibold hover:bg-purple-200 transition-colors cursor-pointer flex items-center gap-2"
-                    >
-                      {uploading.video ? <Loader2 className="w-4 h-4 animate-spin" /> : <Video className="w-4 h-4" />}
-                      Upload Video
-                    </label>
-                    {formData.videoUrl && (
-                      <span className="text-sm text-gray-600">Video uploaded ✓</span>
-                    )}
-                  </div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">YouTube Video URL</label>
+                  <input
+                    type="text"
+                    name="videoUrl"
+                    value={formData.videoUrl}
+                    onChange={handleInputChange}
+                    placeholder="https://www.youtube.com/watch?v=VIDEO_ID or just VIDEO_ID"
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Enter YouTube video URL or video ID (e.g., dQw4w9WgXcQ)
+                  </p>
+                  {formData.videoUrl && extractYouTubeId(formData.videoUrl) && (
+                    <div className="mt-2">
+                      <div className="relative w-full h-48 rounded-lg overflow-hidden border-2 border-gray-200">
+                        <iframe
+                          src={`https://www.youtube.com/embed/${extractYouTubeId(formData.videoUrl)}?rel=0&modestbranding=1`}
+                          className="w-full h-full"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          title="YouTube video preview"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Subtitle & Intro */}

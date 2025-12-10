@@ -25,7 +25,7 @@ function WrittenReviews() {
   if (loading) {
     return (
       <section className="w-full bg-gradient-to-b from-white to-gray-50 py-12 md:py-16">
-        <div className="mx-auto w-full max-w-7xl px-4 md:px-6 lg:px-8">
+        <div className="mx-auto w-full px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden">
             <div className="p-6 md:p-8 lg:p-12">
               <div className="text-center py-12">
@@ -44,7 +44,7 @@ function WrittenReviews() {
 
   return (
     <section className="w-full bg-gradient-to-b from-white to-gray-50 py-12 md:py-16">
-      <div className="mx-auto w-full max-w-7xl px-4 md:px-6 lg:px-8">
+      <div className="mx-auto w-full px-4 sm:px-6 lg:px-8">
         {/* Main Card Container */}
         <div className="bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden">
           <div className="p-6 md:p-8 lg:p-12">
@@ -61,7 +61,7 @@ function WrittenReviews() {
             </div>
 
             {/* Reviews Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               {writtenReviews.map((review) => (
                 <WrittenReviewCard key={review.id} review={review} />
               ))}

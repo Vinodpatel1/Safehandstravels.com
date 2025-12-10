@@ -61,32 +61,6 @@ function CertificateCard({ certificate, currentIndex, onIndexChange }) {
             )
           })}
         </div>
-
-        {/* Circular Navigation Arrows */}
-        <button
-          onClick={() => {
-            const prevIndex = (currentIndex - 1 + certificate.images.length) % certificate.images.length
-            goToSlide(prevIndex)
-          }}
-          className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-900 rounded-full p-1.5 transition-all z-20 shadow-md"
-          aria-label="Previous"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <button
-          onClick={() => {
-            const nextIndex = (currentIndex + 1) % certificate.images.length
-            goToSlide(nextIndex)
-          }}
-          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-900 rounded-full p-1.5 transition-all z-20 shadow-md"
-          aria-label="Next"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
       </div>
       <div className="p-6">
         <h3 className="text-xl font-bold text-gray-900 mb-2">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, User, ChevronDown } from 'lucide-react';
 
@@ -91,6 +91,7 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(false);
+  const adminDropdownRef = useRef(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   const checkAuthStatus = () => {
@@ -120,12 +121,21 @@ const Navbar = () => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (isAdminDropdownOpen && !event.target.closest('.relative')) {
+      if (isAdminDropdownOpen && adminDropdownRef.current && !adminDropdownRef.current.contains(event.target)) {
         setIsAdminDropdownOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+
+    if (isAdminDropdownOpen) {
+      // Add event listener after a small delay to avoid immediate closure
+      setTimeout(() => {
+        document.addEventListener('click', handleClickOutside);
+      }, 0);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
   }, [isAdminDropdownOpen]);
 
   const handleLogout = () => {
@@ -152,11 +162,11 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="w-full border-b border-gray-100 bg-white px-4 py-4 shadow-sm lg:px-10">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center justify-between gap-4 lg:justify-start">
-            <Link to="/">
+    <nav className="w-full border-b border-gray-100 bg-white shadow-sm">
+      <div className="mx-auto w-full px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-4 py-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6 lg:min-h-[80px]">
+          <div className="flex items-center justify-between gap-4 lg:justify-start lg:flex-shrink-0">
+            <Link to="/" className="flex-shrink-0">
               <img
                 src="/images/Logo.webp"
                 alt="Capture A Trip"
@@ -179,7 +189,7 @@ const Navbar = () => {
             </button>
           </div>
 
-          <form onSubmit={handleSearch} className="flex w-full flex-1 items-center gap-3 rounded-full border border-gray-200 px-5 py-2 text-sm text-gray-500 lg:max-w-2xl">
+          <form onSubmit={handleSearch} className="flex w-full flex-1 items-center gap-3 rounded-full border border-gray-200 px-5 py-2 text-sm text-gray-500 lg:max-w-xl xl:max-w-2xl">
             <svg
               viewBox="0 0 24 24"
               className="h-5 w-5 text-gray-500 flex-shrink-0"
@@ -199,7 +209,7 @@ const Navbar = () => {
             />
           </form>
 
-          <div className="hidden lg:flex flex-wrap items-center justify-between gap-3 text-sm font-semibold text-gray-900 lg:w-auto lg:justify-end">
+          <div className="hidden lg:flex flex-wrap items-center justify-end gap-3 text-sm font-semibold text-gray-900 lg:flex-shrink-0">
             <a
               href="tel:+918448801998"
               className="flex items-center gap-2 whitespace-nowrap text-gray-900 transition-colors hover:text-[#017233]"
@@ -219,16 +229,19 @@ const Navbar = () => {
             {isLoggedIn ? (
               <>
                 {(user?.role === 'admin' || user?.role === 'main_admin') && (
-                  <div className="relative">
+                  <div className="relative" ref={adminDropdownRef}>
                     <button
-                      onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsAdminDropdownOpen(!isAdminDropdownOpen);
+                      }}
                       className="flex items-center gap-1 px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl transition-all duration-300 shadow-lg"
                     >
                       Admin Panel
                       <ChevronDown className={`w-4 h-4 transition-transform ${isAdminDropdownOpen ? 'rotate-180' : ''}`} />
                     </button>
                     {isAdminDropdownOpen && (
-                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-50">
+                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-[100]">
                         <Link
                           to="/admin/trips"
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
@@ -295,7 +308,7 @@ const Navbar = () => {
         </div>
 
         {/* Desktop Menu Items */}
-        <div className="hidden lg:flex flex-wrap items-center gap-x-8 gap-y-3 text-sm font-semibold text-gray-900 lg:justify-between">
+        <div className="hidden lg:flex flex-wrap items-center gap-x-6 xl:gap-x-8 gap-y-3 text-sm font-semibold text-gray-900 pb-2">
           {menuItems.map((item) => {
             const IconComponent = item.Icon;
             const isCarBooking = item.label === 'Car Booking';

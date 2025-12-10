@@ -44,7 +44,7 @@ function UpcomingTrips() {
 
   return (
     <section className="w-full bg-gradient-to-b from-gray-50 to-white py-12 md:py-16">
-      <div className="mx-auto w-full max-w-7xl px-4 md:px-6 lg:px-8">
+      <div className="mx-auto w-full px-4 sm:px-6 lg:px-8">
         {/* Main Card Container */}
         <div className="bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden">
           <div>
@@ -87,7 +87,7 @@ function UpcomingTrips() {
             </div>
 
             {/* Trips Grid */}
-            <div className="grid gap-0 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 items-stretch p-4 md:p-5 lg:p-6">
               {visibleTrips.slice(0, 16).map((trip) => (
                 <TripCard key={trip.id} trip={trip} />
               ))}

@@ -29,7 +29,7 @@ function ExploreDestinations() {
   if (loading) {
     return (
       <section className="w-full bg-gradient-to-b from-gray-50 to-white py-12 md:py-16">
-        <div className="mx-auto w-full max-w-7xl px-4 md:px-6 lg:px-8">
+        <div className="mx-auto w-full px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center text-white text-xl font-bold shadow-lg">
@@ -54,7 +54,7 @@ function ExploreDestinations() {
 
   return (
     <section className="w-full bg-gradient-to-b from-gray-50 to-white py-12 md:py-16 overflow-x-hidden overflow-y-visible">
-      <div className="mx-auto w-full max-w-7xl px-4 md:px-6 lg:px-8">
+      <div className="mx-auto w-full px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4">

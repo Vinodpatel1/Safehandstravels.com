@@ -44,7 +44,7 @@ function FAQ() {
 
   return (
     <section className="w-full bg-gradient-to-b from-gray-50 to-white py-12 md:py-16">
-      <div className="mx-auto w-full max-w-7xl px-4 md:px-6 lg:px-8">
+      <div className="mx-auto w-full px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-12 text-center">
           <div className="flex items-center justify-center gap-4 mb-6">

@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react'
 import { tripsAPI, enquiriesAPI } from '../config/api'
 import { Loader2, Calendar, Users, Mail, Phone, MessageSquare, Send, CheckCircle } from 'lucide-react'
 import { useToast } from '../contexts/ToastContext'
+import SEO from '../components/SEO'
+import { getTripSchema, getBreadcrumbSchema } from '../utils/structuredData'
 
 function ProductPage() {
   const { id } = useParams()
@@ -14,6 +16,33 @@ function ProductPage() {
   const [activeTab, setActiveTab] = useState('Itinerary')
   const [numTravelers, setNumTravelers] = useState(1)
   const [selectedDate, setSelectedDate] = useState('Dec 13, 2025')
+
+  useEffect(() => {
+    const fetchTrip = async () => {
+      try {
+        setLoading(true)
+        const data = await tripsAPI.getTripById(id)
+        setTrip(data)
+      } catch (error) {
+        console.error('Error fetching trip:', error)
+        toast.error('Failed to load trip details')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (id) {
+      fetchTrip()
+    }
+  }, [id, toast])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Loader2 className="w-12 h-12 animate-spin text-[#017233]" />
+      </div>
+    )
+  }
 
   if (!trip) {
     return (
@@ -37,7 +66,7 @@ function ProductPage() {
       'Meghalaya': {
         subtitle: '6 Days Adventure Trip',
         intro: 'Meghalaya, the "Abode of Clouds," offers an unparalleled backpacking experience through lush green valleys, cascading waterfalls, and unique living root bridges. This adventure takes you through some of the most pristine and untouched landscapes in Northeast India, where nature and culture blend seamlessly.',
-        video: trip.video || '/video/Slider.mp4',
+        video: trip.videoUrl || trip.video || '',
         gallery: trip.gallery || [
           'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=900&q=60',
           'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=60',
@@ -153,7 +182,7 @@ function ProductPage() {
       'Spiti Valley': {
         subtitle: '7 Days Winter Expedition',
         intro: 'Spiti Valley, often called "Little Tibet," is a high-altitude desert valley that transforms into a winter wonderland. This expedition takes you through snow-clad mountains, ancient monasteries, and remote villages, offering an authentic Himalayan experience in one of India\'s most pristine regions.',
-        video: trip.video || '/video/Slider.mp4',
+        video: trip.videoUrl || trip.video || '',
         gallery: trip.gallery || [
           'https://images.unsplash.com/photo-1523906630133-f6934a1ab6c8?auto=format&fit=crop&w=900&q=60',
           'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?auto=format&fit=crop&w=900&q=60',
@@ -399,6 +428,24 @@ function ProductPage() {
 
   const content = getTripContent(trip)
 
+  // SEO metadata
+  const tripTitle = trip ? `${trip.title} - ${trip.location} | Safe Hands Travels` : 'Trip Details | Safe Hands Travels'
+  const tripDescription = trip 
+    ? (trip.intro || content.intro || `Experience ${trip.title} in ${trip.location}. ${trip.duration} adventure trip with Safe Hands Travels.`)
+    : 'Discover amazing travel experiences with Safe Hands Travels'
+  const tripImage = trip ? (trip.imageUrl || trip.image || '/images/Logo.webp') : '/images/Logo.webp'
+  const tripUrl = trip ? `/trip/${trip.id}` : ''
+  
+  // Structured data
+  const structuredData = trip ? [
+    getTripSchema(trip),
+    getBreadcrumbSchema([
+      { name: 'Home', url: '/' },
+      { name: 'Trips', url: '/all-india-trips' },
+      { name: trip.title, url: tripUrl }
+    ])
+  ].filter(Boolean) : null
+
   const validateEnquiryForm = () => {
     const newErrors = {};
     
@@ -454,24 +501,63 @@ function ProductPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-gray-900 font-sans">
-      {/* Hero Section with Video */}
-      <div className="relative h-[70vh] md:h-[80vh] w-full overflow-hidden">
-        <video 
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-full h-full object-cover"
-        >
-          <source src={content.video} type="video/mp4" />
-          {/* Fallback image if video doesn't load */}
-          <img 
-            src={trip.imageUrl || trip.image} 
-            alt={trip.title}
-            className="w-full h-full object-cover"
-          />
-        </video>
+    <>
+      {trip && (
+        <SEO
+          title={tripTitle}
+          description={tripDescription}
+          keywords={`${trip.title}, ${trip.location}, travel, trip, adventure, ${trip.duration}, Safe Hands Travels, India travel`}
+          image={tripImage}
+          url={tripUrl}
+          type="article"
+          structuredData={structuredData}
+        />
+      )}
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-gray-900 font-sans">
+        {/* Hero Section with Video/YouTube */}
+        <div className="relative h-[70vh] md:h-[80vh] w-full overflow-hidden">
+        {(() => {
+          // Extract YouTube video ID from URL
+          const extractYouTubeId = (url) => {
+            if (!url) return null;
+            
+            // If it's already just an ID, return it
+            if (!url.includes('youtube.com') && !url.includes('youtu.be') && url.length === 11) {
+              return url;
+            }
+            
+            // Extract ID from YouTube URL
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+          };
+
+          const videoUrl = trip.videoUrl || trip.video || content.video;
+          const youtubeId = extractYouTubeId(videoUrl);
+
+          if (youtubeId) {
+            // Use YouTube embed
+            return (
+              <iframe
+                src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3`}
+                className="w-full h-full object-cover"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title={trip.title}
+              />
+            );
+          } else {
+            // Fallback to image
+            return (
+              <img 
+                src={trip.imageUrl || trip.image} 
+                alt={trip.title}
+                className="w-full h-full object-cover"
+              />
+            );
+          }
+        })()}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70 flex items-center justify-center">
           <div className="text-center text-white px-4 animate-fade-in">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 drop-shadow-2xl tracking-tight">
@@ -938,6 +1024,7 @@ function ProductPage() {
         </section>
       </div>
     </div>
+    </>
   )
 }
 

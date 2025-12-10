@@ -25,7 +25,7 @@ function Reviews() {
   if (loading) {
     return (
       <section className="w-full bg-gradient-to-b from-gray-50 to-white py-12 md:py-16">
-        <div className="mx-auto w-full max-w-7xl px-4 md:px-6 lg:px-8">
+        <div className="mx-auto w-full px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden">
             <div className="p-6 md:p-8 lg:p-12">
               <div className="text-center py-12">
@@ -44,7 +44,7 @@ function Reviews() {
 
   return (
     <section className="w-full bg-gradient-to-b from-gray-50 to-white py-12 md:py-16">
-      <div className="mx-auto w-full max-w-7xl px-4 md:px-6 lg:px-8">
+      <div className="mx-auto w-full px-4 sm:px-6 lg:px-8">
         {/* Main Card Container */}
         <div className="bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden">
           <div className="p-6 md:p-8 lg:p-12">
